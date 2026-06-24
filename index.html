@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ประกาศผลการสอบ</title>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    padding:30px;
+    font-family:Tahoma,sans-serif;
+    background:url('background.png') no-repeat center center fixed;
+    background-size:cover;
+    text-align:center;
+}
+
+.box{
+    max-width:900px;
+    margin:auto;
+    background:rgba(255,255,255,0.92);
+    backdrop-filter:blur(8px);
+    border-radius:25px;
+    padding:40px;
+    box-shadow:0 10px 30px rgba(0,0,0,.12);
+}
+
+.logo{
+    width:180px;
+    max-width:100%;
+}
+
+.title{
+    color:#0b2e83;
+    font-size:50px;
+    font-weight:bold;
+    margin-top:15px;
+}
+
+.subtitle{
+    font-size:24px;
+    color:#555;
+    margin-top:10px;
+}
+
+.divider{
+    width:70%;
+    margin:25px auto;
+    border:none;
+    border-top:2px solid #d4af37;
+}
+
+.search-title{
+    color:#0b2e83;
+    font-size:34px;
+    font-weight:bold;
+}
+
+.desc{
+    color:#666;
+    margin-bottom:25px;
+}
+
+input{
+    width:90%;
+    max-width:650px;
+    padding:16px;
+    font-size:22px;
+    border:2px solid #0b2e83;
+    border-radius:12px;
+}
+
+button{
+    margin-top:20px;
+    background:#0b2e83;
+    color:white;
+    border:none;
+    border-radius:12px;
+    padding:15px 50px;
+    font-size:22px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#1542aa;
+}
+
+#result{
+    margin-top:30px;
+}
+
+.result-card{
+    max-width:700px;
+    margin:auto;
+    text-align:left;
+    background:#fafafa;
+    border:1px solid #ddd;
+    border-radius:15px;
+    padding:25px;
+}
+
+.pass{
+    color:#008000;
+}
+
+.fail{
+    color:#cc0000;
+}
+
+.status{
+    text-align:center;
+    font-size:34px;
+    font-weight:bold;
+    margin-bottom:20px;
+}
+
+.loading{
+    color:#0b2e83;
+    font-size:20px;
+    font-weight:bold;
+}
+
+.footer{
+    margin-top:30px;
+    border-top:1px solid #ddd;
+    padding-top:20px;
+    color:#666;
+}
+
+@media(max-width:768px){
+
+.title{
+    font-size:34px;
+}
+
+.subtitle{
+    font-size:18px;
+}
+
+.search-title{
+    font-size:26px;
+}
+
+.logo{
+    width:130px;
+}
+
+input{
+    width:100%;
+    font-size:18px;
+}
+
+button{
+    width:100%;
+}
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+    <img src="logo.png" class="logo" alt="logo">
+
+    <div class="title">
+        ผลการคัดเลือก นศท. ชั้นปีที่ 1
+    </div>
+
+    <div class="subtitle">
+        ศูนย์การฝึกนักศึกษาวิชาทหาร มณฑลทหารบกที่ 33
+    </div>
+
+    <hr class="divider">
+
+    <div class="search-title">
+        ตรวจสอบผลการสอบ
+    </div>
+
+    <p class="desc">
+        กรุณากรอกเลขบัตรประชาชน
+    </p>
+
+    <input
+        type="text"
+        id="idcard"
+        placeholder="กรอกเลขบัตรประชาชน 13 หลัก" maxlength="13" inputmode="numeric">
+
+    <br>
+
+    <button onclick="searchName()">
+        🔍 ค้นหา
+    </button>
+
+    <div id="result"></div>
+
+    <div class="footer">
+        ขอให้โชคดี และเป็นกำลังใจให้ครับ
+    </div>
+
+</div>
+
+<script>
+
+let students = [];
+
+const SHEET_URL =
+"https://opensheet.elk.sh/1BUzAMGXk8H5bvEC_ZMNib8Ap3_go6f_YTBUMf0TvVgQ/Sheet1";
+
+async function loadData(){
+
+    document.getElementById("result").innerHTML =
+    "<div class='loading'>กำลังโหลดข้อมูล...</div>";
+
+    try{
+
+        const response = await fetch(SHEET_URL);
+
+        students = await response.json();
+
+        document.getElementById("result").innerHTML = "";
+
+        console.log("โหลดข้อมูลสำเร็จ", students);
+
+    }catch(error){
+
+        document.getElementById("result").innerHTML =
+        "<div class='fail'>ไม่สามารถเชื่อมต่อฐานข้อมูลได้</div>";
+
+        console.error(error);
+    }
+}
+
+function searchName(){
+
+const keyword=document.getElementById("idcard").value.replace(/\D/g,"").trim();
+if(!keyword){alert("กรุณากรอกเลขบัตรประชาชน");return;}
+const found=students.find(item=>String(item["ID card"]||"").replace(/\D/g,"").trim()===keyword);
+if(found){
+const fullname=`${found["name"]||""} ${found["last name"]||""}`;
+const school=found["school"]||"-";
+const status=found["status"]||"-";
+const pass=status.includes("ผ่าน");
+document.getElementById("result").innerHTML=`<div class="result-card"><div class="status ${pass?'pass':'fail'}">${pass?'🎉':'❌'} ${status}</div><p><strong>ชื่อ - สกุล :</strong> ${fullname}</p><p><strong>สถานศึกษา :</strong> ${school}</p><p><strong>สถานะ :</strong> <span class="${pass?'pass':'fail'}">${status}</span></p></div>`;
+}else{
+document.getElementById("result").innerHTML=`<div class="result-card"><div class="status fail">❌ ไม่ผ่านการคัดเลือก
+</div><p style="text-align:center;"> ปีการศึกษาหน้า..สู้ใหม่ครับ </p></div>`;
+}
+}
+
+document.getElementById("idcard")
+.addEventListener("keypress",function(e){
+
+    if(e.key === "Enter"){
+        searchName();
+    }
+
+});
+
+loadData();
+
+</script>
+
+</body>
+</html>
